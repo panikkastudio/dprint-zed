@@ -1,13 +1,13 @@
 authors        = ["Osman Mesut Ozcan <panikka.studio>"]
 description    = "Dprint support for Zed"
 id             = "dprint"
-name           = "DPrint"
+name           = "Dprint"
 repository     = "https://github.com/dprint/dprint"
 schema_version = 1
-version        = "1.0.0"
+version        = "0.0.1"
 
 [language_servers.dprint]
-name = "DPrint Language Server"
+name = "Dprint Language Server"
 code_action_kinds = ["quickfix"]
 language = "JavaScript"
 languages = [
