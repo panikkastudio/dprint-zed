@@ -4,39 +4,29 @@ id             = "dprint"
 name           = "Dprint"
 repository     = "https://github.com/panikkastudio/dprint-zed"
 schema_version = 1
-version        = "0.0.1"
+version        = "0.1.0"
 
 [language_servers.dprint]
-name = "Dprint Language Server"
-code_action_kinds = ["quickfix"]
-language = "JavaScript"
+name = "dprint"
 languages = [
   "JavaScript",
-  "JSX",
   "TypeScript",
   "TSX",
-  "Vue.js",
-  "Astro",
-  "Svelte",
   "JSON",
   "JSONC",
+  "Markdown",
+  "TOML",
   "CSS",
-  "GraphQL",
+  "SCSS",
+  "LESS",
   "HTML",
-  "Markdown"
+  "Vue.js",
+  "Svelte",
+  "Astro",
+  "Angular",
+  "Twig",
+  "GraphQL",
+  "YAML",
+  "PHP",
+  "Python"
 ]
-
-[language_servers.dprint.language_ids]
-"Astro"      = "astro"
-"CSS"        = "css"
-"GraphQL"    = "graphql"
-"HTML"       = "html"
-"JSON"       = "json"
-"JSONC"      = "jsonc"
-"JSX"        = "javascriptreact"
-"JavaScript" = "javascript"
-"Svelte"     = "svelte"
-"TSX"        = "typescriptreact"
-"TypeScript" = "typescript"
-"Vue.js"     = "vuejs"
-"Markdown"   = "markdown"
