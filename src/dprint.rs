@@ -270,14 +270,7 @@ impl DprintExtension {
 
     let is_in_deno_json = deno_json.is_ok_and(|f| !f["imports"][node_package_name].is_null());
 
-    if !(is_in_package_json || is_in_deno_json) {
-      return false;
-    }
-
-    let worktree_binary_path =
-      Path::new(&worktree.root_path()).join(DPRINT_CONFIG.worktree.worktree_binary_path);
-
-    worktree_binary_path.is_file()
+    is_in_package_json || is_in_deno_json
   }
 }
 
