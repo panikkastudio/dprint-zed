@@ -28,6 +28,8 @@ executable to run in this order:
    - “Indicates you use `dprint`” means:
      - `package.json` contains `dprint` in `dependencies` or `devDependencies`, **or**
      - `deno.json` contains `dprint` in `imports`
+   - Be sure to run `npm install` or equivalent to install `dprint` in `node_modules`. As Zed
+     extension host does not have the permission to check if a binary is there.
 3. **System `PATH`**: if `dprint` is found via `which`, it’s used.
 4. **Auto-install fallback**: if none of the above apply, the extension downloads the latest stable
    release from `dprint/dprint` GitHub releases and runs it.
