@@ -144,7 +144,10 @@ impl<'config> AutoInstaller<'config> {
     {
       let entry = entry.map_err(|error| format!("Failed to load directory entry.{error:?}"))?;
       let entry_path = entry.path();
-      let Some(entry_name) = entry_path.file_name().and_then(|n| n.to_str()) else {
+      let Some(entry_name) = entry_path
+        .file_name()
+        .and_then(|file_name| file_name.to_str())
+      else {
         continue;
       };
 
