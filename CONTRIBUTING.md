@@ -1,56 +1,162 @@
 # Contributing
 
-## Setup
+This repository contains a Zed extension written in Rust (compiled to WASM). The extension registers
+a language server with id `dprint` and tells Zed how to launch the `dprint` CLI in **LSP mode**.
 
-For development instruction see [Authoring Zed Extensions](https://github.com/zed-industries/extensions/blob/main/AUTHORING_EXTENSIONS.md).
+## Ground truth (match the code)
 
-## Development
+### What the extension does
 
-### Install the required tools
+- Exposes a Zed language server with id **`dprint`** (defined in `extension.toml`).
+- When Zed requests the language server command, the extension returns:
+  - a `command` (path to a `dprint` executable), and
+  - `args` (defaults to `["lsp"]` unless overridden in Zed settings).
+- Resolves the `dprint` executable in this order:
+  1. `lsp.dprint.binary.path` from Zed settings (if set).
+  2. Worktree `node_modules/.bin/dprint` **only if**:
+     - the worktree indicates `dprint` is used (via `package.json` deps/devDeps or `deno.json`
+       imports), and
+     - `node_modules/.bin/dprint` exists.
+  3. `dprint` found on `PATH`.
+  4. Auto-download the latest stable `dprint` release from `dprint/dprint` GitHub releases and run
+     it.
 
-We use [Just](https://just.systems/man/en/) to run scripts and tasks, to make our life easier.
+### What the extension does NOT do
 
-You can install `just` using cargo:
+- It does **not** implement formatting logic itself.
+- It does **not** run `dprint fmt` as a fallback.
+- It does **not** forward custom LSP “settings” payloads to `dprint`.
+  - If you see docs mentioning settings like `config_path`, `require_config_file`,
+    `requireConfiguration`, or `configurationPath`: that behavior is **not implemented** in this
+    codebase.
+- Auto-install does **not** support 32-bit `x86` architecture (manual binary configuration
+  required).
 
-```shell
-cargo install just
+## Development setup
+
+### Prerequisites
+
+- Rust toolchain (stable is fine; this repo uses Rust edition 2024).
+- WASM target for Zed extensions:
+
+```
+rustup target add wasm32-wasip2
 ```
 
-But we **highly recommend
-** to [install it using an OS package manager](https://github.com/casey/just#packages),  so you won't need to prefix every command with `cargo`.
+### Build / check locally
 
-Once installed, run the following command install the required tools:
+From the repo root:
 
-```shell
-just install-tools
+```
+cargo check
 ```
 
-1. Clone this repository.
-1. Open Zed
-1. Open the command palette <kbd>Ctrl</kbd>/<kbd title="Cmd">⌘</kbd>+<kbd title="Shift">⇧</kbd>+<kbd>P</kbd>
-1. Run the `zed: install dev extensions` command.
-1. Select the directory of this repo.
+(Optional, if you use them locally:)
 
-If you make changes to the Rust code and you require to reload the extension,  you can open the "Extensions" tab by running the command `zed: extensions`, choose the `"Installed"`, seek the current extension and click the `"Rebuild"` label.
+```
+cargo fmt
+cargo clippy
+```
 
-### Custom dprint binary
+## Running the extension in Zed (dev install)
 
-The binary used by the extension can be overriden in Zed settings.json using the `lsp` key:
+1. Open Zed.
+2. Command palette → `zed: install dev extensions`.
+3. Select the repository folder.
+4. After changes, open `zed: extensions`, find the extension, and click **Rebuild**.
 
-```jsonc
-// settings.json
+## Testing behavior (truthy workflow)
+
+### 1) Validate the command Zed will run
+
+By default the extension runs:
+
+- `dprint lsp`
+
+If you override arguments, it will run whatever you set in `lsp.dprint.binary.arguments`.
+
+To reduce ambiguity while testing, explicitly pin the binary path in your Zed `settings.json`:
+
+```
 {
   "lsp": {
     "dprint": {
       "binary": {
-        "path": "<path_to_dprint_binary>",
-        "arguments": ["lsp-proxy"]
+        "path": "/absolute/path/to/dprint",
+        "arguments": ["lsp"]
       }
     }
   }
 }
 ```
 
-#### Logs
+Notes:
 
-Zed will print logs in the following directory: `~/Library/Logs/Zed/Zed.log`
+- If you omit `arguments`, the extension defaults to `["lsp"]`.
+- If you’re using a wrapper script/binary, point `path` at the wrapper and set `arguments`
+  accordingly.
+
+### 2) Test the worktree `node_modules/.bin` detection (optional)
+
+The extension will only prefer `node_modules/.bin/dprint` if the worktree declares `dprint` as being
+used.
+
+For Node projects:
+
+- Ensure `package.json` has `dprint` in `dependencies` or `devDependencies`.
+- Ensure `node_modules/.bin/dprint` exists (for example after install).
+
+For Deno projects:
+
+- Ensure `deno.json` has `dprint` under `imports`.
+
+Then start Zed in that worktree and confirm (via logs) that it launches the worktree binary.
+
+### 3) Test the auto-installer path (optional)
+
+To exercise auto-install:
+
+- Ensure there is no `lsp.dprint.binary.path` override.
+- Ensure the worktree does not qualify for `node_modules/.bin/dprint` selection.
+- Ensure `dprint` is not available on `PATH`.
+
+When Zed starts the language server, the extension should download the latest stable `dprint` from
+GitHub releases and run it.
+
+Caveats:
+
+- Auto-install is OS/architecture dependent.
+- 32-bit `x86` is not supported by the auto-installer.
+
+### 4) Confirm dprint formatting behavior independently
+
+If the language server starts but formatting output is unexpected, validate `dprint` itself in the
+same repository/worktree context:
+
+- `dprint --version`
+- `dprint fmt`
+
+Configuration discovery is handled by `dprint` (not by this extension).
+
+## Repository conventions
+
+- Keep changes small and focused.
+- Prefer clear error messages and deterministic behavior.
+- Update `README.md` / `CHANGELOG.md` when behavior changes.
+
+## Filing issues / PR testing notes
+
+When you open an issue or PR, include:
+
+- Zed version
+- OS + architecture
+- The resolved `dprint` binary path (and whether it was auto-installed, from PATH, or from
+  `node_modules`)
+- The args used (default `["lsp"]` or overridden)
+- `dprint --version` output
+- Relevant Zed logs mentioning `dprint`
+
+## Security
+
+Do not commit secrets (tokens, API keys, credentials). If you add tooling that needs credentials,
+document configuration via environment variables or local-only config files.

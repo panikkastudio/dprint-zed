@@ -1,16 +1,16 @@
 [package]
+name = "zed_dprint"
+version = "1.0.0"
 edition = "2024"
 license = "MIT"
-name    = "zed_dprint"
 publish = false
-version = "1.0.0"
 
 [lib]
 crate-type = ["cdylib"]
-path       = "src/dprint.rs"
+path = "src/dprint.rs"
 
 [dependencies]
-log                = "0.4.27"
-tracing            = "0.1.41"
+log = "0.4.27"
+tracing = "0.1.41"
 tracing-subscriber = "0.3.19"
-zed_extension_api  = "0.5.0"
+zed_extension_api = "0.7.0"
